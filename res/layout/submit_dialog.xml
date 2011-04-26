@@ -1,0 +1,54 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/layout_root"
+              android:orientation="vertical"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:minWidth="300dip"
+              >
+    <EditText android:id="@+id/title"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:singleLine="true"
+              android:hint="Title"
+              />
+    
+    <EditText android:id="@+id/url"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:singleLine="true"
+              android:hint="Url"
+              />
+    
+    <TextView android:text="  or"
+    		  android:layout_width="wrap_content"
+    		  android:layout_height="wrap_content"
+    		  />
+           
+    <EditText android:id="@+id/text"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:singleLine="false"
+              android:lines="6"
+              android:hint="Text"
+              android:gravity="top"
+              />
+              
+    <LinearLayout android:layout_width="fill_parent"
+    			  android:layout_height="wrap_content"
+    			  android:orientation="horizontal"
+    			  >         
+	    <Button android:id="@+id/submit"
+	    		android:layout_width="fill_parent"
+	    		android:layout_height="wrap_content"
+	    		android:text="Submit"
+	    		android:layout_weight="1"
+	    		/>
+	    
+	    <Button android:id="@+id/cancel"
+	    		android:layout_width="fill_parent"
+	    		android:layout_height="wrap_content"
+	    		android:text="Cancel"
+	    		android:layout_weight="1"
+	    		/>		
+   	</LinearLayout>
+</LinearLayout>

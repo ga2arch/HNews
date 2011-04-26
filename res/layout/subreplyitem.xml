@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+				android:layout_height="match_parent"
+				android:layout_width="match_parent"
+				android:background="#E3E3E3"
+			  	android:cacheColorHint="#E3E3E3"
+			  	android:orientation="vertical"
+			  	>
+	
+	<com.markupartist.android.widget.ActionBar
+	    android:id="@+id/actionbar"
+	    style="@style/ActionBar"
+    />
+	
+	<ListView android:id="@+id/replies"
+			  android:layout_width="match_parent"
+			  android:layout_height="match_parent"
+			  android:background="#E3E3E3"
+			  android:cacheColorHint="#E3E3E3"
+			  android:dividerHeight="1sp"
+			  android:divider="#CECECE"
+			  android:layout_weight="1">
+	</ListView>
+</LinearLayout>
+			  

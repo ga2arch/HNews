@@ -1,0 +1,4 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<item android:id="@+id/prefs" android:title="Preferences"></item>
+<item android:id="@+id/credits" android:title="Credits"></item>
+</menu>

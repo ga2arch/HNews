@@ -150,9 +150,12 @@ public class HNews extends Activity  {
         
         
         if(Intent.ACTION_SEND.equals(intent.getAction())) {
-        	String url = intent.getStringExtra(Intent.EXTRA_TEXT);
+        	String t = intent.getStringExtra(Intent.EXTRA_TEXT);
         	Bundle bundle = new Bundle();
-        	bundle.putString("url", url);
+        	if(t.startsWith("http"))
+        		bundle.putString("url", t);
+        	else
+        		bundle.putString("text", t);
         	showDialog(DIALOG_ADD_ENTRY, bundle);
         }
         
@@ -355,7 +358,7 @@ public class HNews extends Activity  {
     	
     	@Override
     	public void performAction(View view) {
-    		showDialog(DIALOG_ADD_ENTRY);
+    		showDialog(DIALOG_ADD_ENTRY, new Bundle());
     	}
     };
     

@@ -55,7 +55,8 @@
 			<TextView android:id="@+id/points"
 					  android:layout_width="wrap_content"
 					  android:layout_height="wrap_content"
-					  android:textColor="#8F8F8F">
+					  android:textColor="#8F8F8F"
+					  android:visibility="gone">
 			</TextView>
 			
 			<TextView android:id="@+id/numReply"

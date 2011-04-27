@@ -138,6 +138,28 @@ public class HNReply extends Activity {
 	}
 	
 	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.options_news_menu, menu);
+		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()) {
+		case R.id.prefs:
+			Intent intent = new Intent(getBaseContext(), HNPreferences.class);
+			startActivity(intent);
+			return true;
+		case R.id.credits:
+			Toast.makeText(this, "Thanks to ronnieroller.com for the hackernews api, newsyc.me for the ui idea and johannilsson for the actionbar lib", Toast.LENGTH_LONG).show();
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
+	
+	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.options_action_menu, menu);
@@ -218,6 +240,8 @@ public class HNReply extends Activity {
     		return result;
     	}
     };
+    
+    
 	
 	private class HNVote extends AsyncTask<String, String, Integer> {
 

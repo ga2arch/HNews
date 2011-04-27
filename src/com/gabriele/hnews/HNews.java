@@ -27,7 +27,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -70,12 +72,16 @@ public class HNews extends Activity  {
 
     private String API_HOME = "http://api.ihackernews.com/page";
 	private String API_NEW = "http://api.ihackernews.com/new";
+	private String API_HCKR = "http://hckrnews.com/data/latest.js";
 	private String API_NEXT;
-	
-	private boolean homePage = true;
+	private String API_END;
+	private String location;
+
     private boolean loading = true;
 	
     static final int DIALOG_ADD_ENTRY = 0;
+    static final int DIALOG_CHOOSE = 1;
+
     
     /** Called when the activity is first created. */
     @Override
@@ -90,18 +96,19 @@ public class HNews extends Activity  {
         
         Intent intent = getIntent();
         if(Intent.ACTION_VIEW.equals(intent.getAction())) {
-        	String loc = intent.getData().getLastPathSegment();
-        	if(loc.equals("news"))
-        		homePage = true;
+        	location = intent.getData().getLastPathSegment();
+        	if(location == "news")
+        		API_END = API_HOME;
         	else
-        		homePage = false;
+        		API_END = API_NEW;
         }
-    
+        else {
+        	location = "news";
+            API_END = API_HOME;
+        }
+        
         actionBar = (ActionBar) findViewById(R.id.actionbar);
-        if(homePage)
-        	actionBar.setTitle("News");
-        else
-        	actionBar.setTitle("Newest");
+        actionBar.setTitle(capitalize(location));
         actionBar.setHomeAction(new IntentAction(this, HNApp.createIntent(this), R.drawable.ic_title_home_default));
         actionBar.addAction(mUpdateAction);
         actionBar.addAction(mLoadNewAction);
@@ -117,7 +124,7 @@ public class HNews extends Activity  {
 
 			@Override
 			public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-				if (!loading && (firstVisibleItem + visibleItemCount) >= (totalItemCount - 15)) {
+				if (!(location == "hckr") && !loading && (firstVisibleItem + visibleItemCount) >= (totalItemCount - 15)) {
 					new getJson(true).execute(API_NEXT);//, true);
 					loading = true;
 				}
@@ -136,18 +143,11 @@ public class HNews extends Activity  {
 				String postId = (String)tvPostId.getText();
 				Intent intent = new Intent(getApplicationContext(), HNPost.class);
 				intent.putExtra("postId", postId);
-				if(homePage)
-					intent.putExtra("type", "news");
-				else
-					intent.putExtra("type", "newest");
+				intent.putExtra("type", location);
 				startActivity(intent);
 			}
         });
-        if(homePage)
-        	new getJson(false).execute(API_HOME);//, false);
-        else
-        	new getJson(false).execute(API_NEW);
-        
+       	new getJson(false).execute(API_END);
         
         if(Intent.ACTION_SEND.equals(intent.getAction())) {
         	String t = intent.getStringExtra(Intent.EXTRA_TEXT);
@@ -175,7 +175,7 @@ public class HNews extends Activity  {
     	TextView tvUrl = (TextView) parent.findViewById(R.id.url);
     	String url = (String)tvUrl.getText();
     	if(url.startsWith("/")) {
-    		url = "http://news.ycombinator.com/item?id=" + url.split("/")[2] ;
+    		url = "http://news.ycombinator.com/item?id=" + url.split("/")[2];
     	}
     	switch (item.getItemId()) {
     	case R.id.open:
@@ -209,7 +209,10 @@ public class HNews extends Activity  {
 			startActivity(intent);
 			return true;
 		case R.id.credits:
-			Toast.makeText(this, "Thanks to ronnieroller.com for the hackernews api, newsyc.me for the ui idea and johannilsson for the actionbar lib", Toast.LENGTH_LONG).show();
+			Toast.makeText(this, "Thanks to ronnieroller.com for the " +
+								  "hackernews api, newsyc.me for the ui " +
+								  "idea and johannilsson for the actionbar " +
+								  "lib", Toast.LENGTH_LONG).show();
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -218,17 +221,21 @@ public class HNews extends Activity  {
     
 	@Override
 	protected void onPrepareDialog(int id, Dialog dialog, Bundle bundle) {
-		String title = bundle.getString("title");
-		String url = bundle.getString("url");
-		String text = bundle.getString("text");
-		
-		EditText etTitle = (EditText) dialog.findViewById(R.id.title);
-		EditText etUrl = (EditText) dialog.findViewById(R.id.url);
-		EditText etText = (EditText) dialog.findViewById(R.id.text);
-		
-		etTitle.setText(title);
-		etUrl.setText(url);
-		etText.setText(text);
+		switch(id) {
+		case DIALOG_ADD_ENTRY:
+			String title = bundle.getString("title");
+			String url = bundle.getString("url");
+			String text = bundle.getString("text");
+			
+			EditText etTitle = (EditText) dialog.findViewById(R.id.title);
+			EditText etUrl = (EditText) dialog.findViewById(R.id.url);
+			EditText etText = (EditText) dialog.findViewById(R.id.text);
+			
+			etTitle.setText(title);
+			etUrl.setText(url);
+			etText.setText(text);
+			break;
+		}
 		
 	}
 	
@@ -266,10 +273,43 @@ public class HNews extends Activity  {
     		});
     		dialog = dialogEntry;
 			break;
-			default:
-				dialog = null;
+			
+		case DIALOG_CHOOSE:
+			final CharSequence[] items = {"News", "Newest", "Hckr"};
+			
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle("Pick a category");
+			builder.setItems(items, new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					location = ((String) items[which]).toLowerCase();
+					System.out.println("qui2" + location);
+					if(items[which] == "News") {
+						API_END = API_HOME;
+					} else if(items[which] == "Newest") {
+						API_END = API_NEW;
+					} else if(items[which] == "Hckr") {
+						API_END = API_HCKR;
+					}
+				}
+			});
+			
+			dialog = builder.create();
+			dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+				@Override
+				public void onDismiss(DialogInterface dialog) {
+		    		new getJson(false).execute(API_END);
+				}
+			});
+			break;
+		default:
+			dialog = null;
 		}
 		return dialog;
+	}
+	
+	private String capitalize(String s) {
+		return s.subSequence(0, 1).toString().toUpperCase() + s.substring(1);
 	}
 	
     private void parseJson(String raw, boolean appendData) {
@@ -279,10 +319,7 @@ public class HNews extends Activity  {
 			JSONObject json = new JSONObject(raw);
 			JSONArray news = json.getJSONArray("items");
 			
-			if(homePage)
-				API_NEXT = API_HOME + "/" + json.getString("nextId");
-			else
-				API_NEXT = API_NEW + "/" + json.getString("nextId");
+			API_NEXT = API_END + "/" + json.getString("nextId");
 				
 			for(int i=0; i<news.length(); i++) {
 				HNewsItem item = new HNewsItem();
@@ -315,6 +352,42 @@ public class HNews extends Activity  {
 		}
     }
     
+    private void parseHckrJson(String raw, boolean appendData) {
+    	try {
+    		if(!appendData)
+    			adapter.clear();
+    		raw = "{\"items\":" + raw.substring(15) + "}";
+
+			JSONObject json = new JSONObject(raw);
+			JSONArray news = json.getJSONArray("items");
+			
+			for(int i=0; i<news.length(); i++) {
+				HNewsItem item = new HNewsItem();
+				
+				JSONObject singleNews = news.getJSONObject(i);
+
+				item.setTitle(singleNews.getString("link_text"));
+				item.setAuthor(singleNews.getString("submitter"));
+				item.setComments(singleNews.getString("comments"));
+				item.setUrl(singleNews.getString("link"));
+				item.setPoints(singleNews.getString("points"));
+				item.setTime(singleNews.getString("date"));
+				item.setPostId(singleNews.getString("id"));
+				try {
+					item.setDomain(singleNews.getString("source"));
+				} catch (JSONException e ){
+					item.setDomain("");
+				}
+				HNApp.setPost(singleNews.getString("id"), item);
+				adapter.add(item);
+
+			}
+
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+    }
+    
     final MyAction mUpdateAction = new MyAction() {
     	@Override
     	public int getDrawable() {
@@ -323,10 +396,7 @@ public class HNews extends Activity  {
     	
     	@Override
     	public void performAction(View view) {
-    		if(homePage)
-    			new getJson(false).execute(API_HOME);
-    		else
-    			new getJson(false).execute(API_NEW);
+   			new getJson(false).execute(API_END);
     		lv.setSelectionAfterHeaderView();
     	}
     	
@@ -344,14 +414,7 @@ public class HNews extends Activity  {
     	    	
     	@Override
     	public void performAction(View view) {
-    		if(homePage) {
-    			homePage = false;
-    			new getJson(false).execute(API_NEW);//, false);
-    		}
-    		else {
-    			homePage = true;
-    			new getJson(false).execute(API_HOME);//, false);
-    		}
+    		showDialog(DIALOG_CHOOSE);
     		lv.setSelectionAfterHeaderView();
     	}
     };
@@ -414,16 +477,16 @@ public class HNews extends Activity  {
 		}
     	
     	protected void onProgressUpdate(String... result) {
-    		parseJson(result[0], appendData);
+    		if(location.equals("hckr"))
+    			parseHckrJson(result[0], appendData);
+    		else
+    			parseJson(result[0], appendData);
     	}
     	
     	protected void onPostExecute(Integer v) {
     		if(v == 0) {
     			loading = false;
-    			if(homePage)
-    				actionBar.setTitle("News");
-    			else
-    				actionBar.setTitle("Newest");
+   				actionBar.setTitle(capitalize(location));
     			adapter.notifyDataSetChanged();
     		} else {
     			actionBar.setTitle("No Internet Connection");

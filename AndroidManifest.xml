@@ -27,8 +27,12 @@
                 	  android:host="news.ycombinator.com" 
                 	  android:pathPattern="/new.*"></data>
             </intent-filter>
-            
-            
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+           
         </activity>
 		<activity android:name=".HNPost"
 				  android:configChanges="orientation"

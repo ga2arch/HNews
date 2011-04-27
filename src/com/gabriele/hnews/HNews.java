@@ -59,17 +59,20 @@ import com.markupartist.android.widget.actionbar.R;
 public class HNews extends Activity  {
 	
 	private HNApplication HNApp;
-	private boolean homePage = true;
 	private ListView lv;
 	private ActionBar actionBar;
     private HNewsAdapter adapter;
     private SharedPreferences prefs;
-	private String API_HOME = "http://api.ihackernews.com/page";
+
+    private String API_HOME = "http://api.ihackernews.com/page";
 	private String API_NEW = "http://api.ihackernews.com/new";
 	private String API_NEXT;
 	
+	private boolean homePage = true;
     private boolean loading = true;
 	
+    static final int DIALOG_ADD_ENTRY = 0;
+    
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -89,7 +92,7 @@ public class HNews extends Activity  {
         	else
         		homePage = false;
         }
-        
+    
         actionBar = (ActionBar) findViewById(R.id.actionbar);
         if(homePage)
         	actionBar.setTitle("News");
@@ -140,6 +143,15 @@ public class HNews extends Activity  {
         	new getJson(false).execute(API_HOME);//, false);
         else
         	new getJson(false).execute(API_NEW);
+        
+        
+        if(Intent.ACTION_SEND.equals(intent.getAction())) {
+        	String url = intent.getStringExtra(Intent.EXTRA_TEXT);
+        	Bundle bundle = new Bundle();
+        	bundle.putString("url", url);
+        	showDialog(DIALOG_ADD_ENTRY, bundle);
+        }
+        
     }
     
     /*@Override
@@ -191,6 +203,62 @@ public class HNews extends Activity  {
 		}
 	}
     
+	@Override
+	protected void onPrepareDialog(int id, Dialog dialog, Bundle bundle) {
+		String title = bundle.getString("title");
+		String url = bundle.getString("url");
+		String text = bundle.getString("text");
+		
+		EditText etTitle = (EditText) dialog.findViewById(R.id.title);
+		EditText etUrl = (EditText) dialog.findViewById(R.id.url);
+		EditText etText = (EditText) dialog.findViewById(R.id.text);
+		
+		etTitle.setText(title);
+		etUrl.setText(url);
+		etText.setText(text);
+		
+	}
+	
+	protected Dialog onCreateDialog(int id) {
+		Dialog dialog = null;
+		switch(id) {
+		case DIALOG_ADD_ENTRY:
+			final Dialog dialogEntry = new Dialog(this);
+    		dialogEntry.setContentView(R.layout.submit_dialog);
+    		dialogEntry.setTitle("Add Entry");
+    		
+    		Button btSubmit = (Button)dialogEntry.findViewById(R.id.submit);
+    		btSubmit.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					EditText etTitle = (EditText) dialogEntry.findViewById(R.id.title);
+					EditText etUrl = (EditText) dialogEntry.findViewById(R.id.url);
+					EditText etText = (EditText) dialogEntry.findViewById(R.id.text);
+					
+					String title = etTitle.getText().toString();
+					String url = etUrl.getText().toString();
+					String text = etText.getText().toString();
+					
+					new HNSubmit().execute(title, url, text);
+					dialogEntry.dismiss();
+				}
+    		});
+    		
+    		Button btCancel = (Button) dialogEntry.findViewById(R.id.cancel);
+    		btCancel.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					dialogEntry.dismiss();
+				}
+    		});
+    		dialog = dialogEntry;
+			break;
+			default:
+				dialog = null;
+		}
+		return dialog;
+	}
+	
     private void parseJson(String raw, boolean appendData) {
     	try {
     		if(!appendData)
@@ -283,36 +351,7 @@ public class HNews extends Activity  {
     	
     	@Override
     	public void performAction(View view) {
-    		final Dialog dialog = new Dialog(HNews.this);
-    		dialog.setContentView(R.layout.submit_dialog);
-    		dialog.setTitle("Add Entry");
-    		
-    		Button btSubmit = (Button)dialog.findViewById(R.id.submit);
-    		btSubmit.setOnClickListener(new OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					EditText etTitle = (EditText) dialog.findViewById(R.id.title);
-					EditText etUrl = (EditText) dialog.findViewById(R.id.url);
-					EditText etText = (EditText) dialog.findViewById(R.id.text);
-					
-					String title = etTitle.getText().toString();
-					String url = etUrl.getText().toString();
-					String text = etText.getText().toString();
-					
-					new HNSubmit().execute(title, url, text);
-					dialog.dismiss();
-				}
-    		});
-    		
-    		Button btCancel = (Button) dialog.findViewById(R.id.cancel);
-    		btCancel.setOnClickListener(new OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					dialog.dismiss();
-				}
-    		});
-    		
-    		dialog.show();
+    		showDialog(DIALOG_ADD_ENTRY);
     	}
     };
     

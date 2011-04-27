@@ -81,8 +81,20 @@ public class HNews extends Activity  {
         	
         prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         
+        Intent intent = getIntent();
+        if(Intent.ACTION_VIEW.equals(intent.getAction())) {
+        	String loc = intent.getData().getLastPathSegment();
+        	if(loc.equals("news"))
+        		homePage = true;
+        	else
+        		homePage = false;
+        }
+        
         actionBar = (ActionBar) findViewById(R.id.actionbar);
-        actionBar.setTitle("News");
+        if(homePage)
+        	actionBar.setTitle("News");
+        else
+        	actionBar.setTitle("Newest");
         actionBar.setHomeAction(new IntentAction(this, HNApp.createIntent(this), R.drawable.ic_title_home_default));
         actionBar.addAction(mUpdateAction);
         actionBar.addAction(mLoadNewAction);
@@ -124,7 +136,10 @@ public class HNews extends Activity  {
 				startActivity(intent);
 			}
         });
-        new getJson(false).execute(API_HOME);//, false);
+        if(homePage)
+        	new getJson(false).execute(API_HOME);//, false);
+        else
+        	new getJson(false).execute(API_NEW);
     }
     
     /*@Override

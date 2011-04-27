@@ -85,7 +85,12 @@ public class HNPost extends Activity{
 	    actionBar.addAction(mAddAction);
 	    
 		Intent intent = getIntent();
-		postId = intent.getStringExtra("postId");
+		
+		if(Intent.ACTION_VIEW.equals(intent.getAction()))
+			postId = intent.getData().getQueryParameter("id");
+		else
+			postId = intent.getStringExtra("postId");
+		
 		type = intent.getStringExtra("type");
 		
 		if(savedInstanceState != null)

@@ -19,10 +19,28 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" 
+                	  android:host="news.ycombinator.com" 
+                	  android:pathPattern="/new.*"></data>
+            </intent-filter>
+            
+            
         </activity>
 		<activity android:name=".HNPost"
 				  android:configChanges="orientation"
 				  >
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" 
+                	  android:host="news.ycombinator.com" 
+                	  android:pathPrefix="/item"/>
+            </intent-filter>
 		</activity>
 		<activity android:name=".HNReply"
 				  android:configChanges="orientation"

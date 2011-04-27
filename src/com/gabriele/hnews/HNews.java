@@ -183,6 +183,12 @@ public class HNews extends Activity  {
     		intent.setData(Uri.parse(url));
     		startActivity(intent);  
     		return true;
+    	case R.id.share:
+			Intent shareIntent = new Intent(Intent.ACTION_SEND);
+			shareIntent.setType("text/plain");
+			shareIntent.putExtra(Intent.EXTRA_TEXT, url);
+			startActivity(Intent.createChooser(shareIntent, "Share"));
+			return true;
     	default:
     		return super.onContextItemSelected(item);
     	}

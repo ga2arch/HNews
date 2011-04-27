@@ -1,4 +1,5 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 <item android:id="@+id/up" android:title="Upvote" android:visible="true" android:enabled="true"></item>
 <item android:id="@+id/down" android:title="Downvote"></item>
+<item android:id="@+id/share" android:title="Share"></item>
 </menu>

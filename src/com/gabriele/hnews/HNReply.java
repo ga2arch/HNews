@@ -171,6 +171,8 @@ public class HNReply extends Activity {
     	RelativeLayout parent = ((RelativeLayout) info.targetView);
     	TextView tvId = (TextView) parent.findViewById(R.id.replyId);
     	String replyId = tvId.getText().toString();
+    	TextView tvReplyContent = (TextView) parent.findViewById(R.id.content);
+    	String text = tvReplyContent.getText().toString();
 		switch(item.getItemId()) {
 		case R.id.up:
 			new HNVote().execute("up", replyId);
@@ -178,9 +180,11 @@ public class HNReply extends Activity {
 		case R.id.down:
 			new HNVote().execute("down", replyId);
 			return true;
-		case R.id.prefs:
-			Intent intent = new Intent(getBaseContext(), HNPreferences.class);
-			startActivity(intent);
+		case R.id.share:
+			Intent shareIntent = new Intent(Intent.ACTION_SEND);
+			shareIntent.setType("text/plain");
+			shareIntent.putExtra(Intent.EXTRA_TEXT, text);
+			startActivity(Intent.createChooser(shareIntent, "Share"));
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);

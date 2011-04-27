@@ -216,13 +216,17 @@ public class HNPost extends Activity{
     @Override
     public boolean onContextItemSelected(MenuItem item) {
     	String replyId = null;
+    	String text = null;
     	AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
     	RelativeLayout parent = ((RelativeLayout) info.targetView);
-    	TextView tvId = (TextView) parent.findViewById(R.id.replyId);
-    	if(tvId != null) {
-    		replyId = tvId.getText().toString();
-    	}
-
+    	TextView tvReplyId = (TextView) parent.findViewById(R.id.replyId);
+    	TextView tvReplyContent = (TextView) parent.findViewById(R.id.content);
+    	TextView tvPostUrl = (TextView) parent.findViewById(R.id.url);
+    	if(tvReplyId != null) {
+    		replyId = tvReplyId.getText().toString();
+    		text = tvReplyContent.getText().toString();
+    	} else 
+    		text = tvPostUrl.getText().toString();
     	switch(item.getItemId()) {
 		case R.id.up:
 			if(replyId != null)
@@ -236,9 +240,11 @@ public class HNPost extends Activity{
 			else
 				new HNVote().execute("post", "down", type);
 			return true;
-		case R.id.prefs:
-			Intent intent = new Intent(getBaseContext(), HNPreferences.class);
-			startActivity(intent);
+		case R.id.share:
+			Intent shareIntent = new Intent(Intent.ACTION_SEND);
+			shareIntent.setType("text/plain");
+			shareIntent.putExtra(Intent.EXTRA_TEXT, text);
+			startActivity(Intent.createChooser(shareIntent, "Share"));
 			return true;
     	default:
     		return super.onContextItemSelected(item);

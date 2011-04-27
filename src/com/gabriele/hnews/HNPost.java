@@ -36,18 +36,22 @@ import android.preference.PreferenceManager;
 import android.text.Html;
 import android.text.Spanned;
 import android.text.util.Linkify;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -155,7 +159,7 @@ public class HNPost extends Activity{
 		super.onSaveInstanceState(savedInstanceState);
 	}
 	
-	@Override
+	/*@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.options_action_menu, menu);
@@ -178,7 +182,46 @@ public class HNPost extends Activity{
 		default:
 			return super.onOptionsItemSelected(item);
 		}
-	}
+	}*/
+	
+	@Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+    	super.onCreateContextMenu(menu, v, menuInfo);
+    	MenuInflater inflater = getMenuInflater();
+    	inflater.inflate(R.menu.options_action_menu, menu);
+    }
+    
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+    	String replyId = null;
+    	AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+    	RelativeLayout parent = ((RelativeLayout) info.targetView);
+    	TextView tvId = (TextView) parent.findViewById(R.id.replyId);
+    	if(tvId != null) {
+    		replyId = tvId.getText().toString();
+    	}
+
+    	switch(item.getItemId()) {
+		case R.id.up:
+			if(replyId != null)
+				new HNVote().execute("reply", "up", replyId);
+			else
+				new HNVote().execute("post", "up", type);
+			return true;
+		case R.id.down:
+			if(replyId != null)
+				new HNVote().execute("reply", "down", replyId);
+			else
+				new HNVote().execute("post", "down", type);
+			return true;
+		case R.id.prefs:
+			Intent intent = new Intent(getBaseContext(), HNPreferences.class);
+			startActivity(intent);
+			return true;
+    	default:
+    		return super.onContextItemSelected(item);
+    	}
+    }
 	
 	private void parseJson(String raw) {
     	try {
@@ -339,8 +382,15 @@ public class HNPost extends Activity{
 				}
 				
 				HttpGet grequest = new HttpGet();
-				String voteUrl = "http://news.ycombinator.com/vote?for=" + postId 
-							   + "&dir=" + args[0] + "&whence=" + args[1];
+				String voteUrl;
+				
+				if(args[0] == "post")
+					voteUrl = "http://news.ycombinator.com/vote?for=" + postId 
+							   + "&dir=" + args[1] + "&whence=" + args[2];
+				else
+					voteUrl = "http://news.ycombinator.com/vote?for=" + args[2]
+					   + "&dir=" + args[1] + "&whence=item?id=" + postId;
+				
 				grequest.setURI(new URI(voteUrl));
 				String content = httpClient.execute(grequest, mResponseHandler, ctx);
 				if(content.equals("Can't make that vote.")) {
@@ -352,7 +402,7 @@ public class HNPost extends Activity{
 				e.printStackTrace();
 				return 2;
 			}
-			if(args[0] == "up")
+			if(args[1] == "up")
 				return 0;
 			else
 				return 1;

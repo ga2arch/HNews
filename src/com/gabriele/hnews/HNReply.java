@@ -30,17 +30,21 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -109,7 +113,7 @@ public class HNReply extends Activity {
 		}
 		
 		ListView lv = (ListView)findViewById(R.id.replies);
-		
+		registerForContextMenu(lv);
 		lv.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override
@@ -134,20 +138,23 @@ public class HNReply extends Activity {
 	}
 	
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.options_action_menu, menu);
-		return true;
 	}
 	
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
+	public boolean onContextItemSelected(MenuItem item) {
+		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+    	RelativeLayout parent = ((RelativeLayout) info.targetView);
+    	TextView tvId = (TextView) parent.findViewById(R.id.replyId);
+    	String replyId = tvId.getText().toString();
 		switch(item.getItemId()) {
 		case R.id.up:
-			new HNVote().execute("up", postId);
+			new HNVote().execute("up", replyId);
 			return true;
 		case R.id.down:
-			new HNVote().execute("down", postId);
+			new HNVote().execute("down", replyId);
 			return true;
 		case R.id.prefs:
 			Intent intent = new Intent(getBaseContext(), HNPreferences.class);
@@ -226,8 +233,8 @@ public class HNReply extends Activity {
 				}				
 				
 				HttpGet grequest = new HttpGet();
-				String voteUrl = "http://news.ycombinator.com/vote?for=" + replyId
-							   + "&dir=" + args[0] + "&whence=item?id=" + args[1];
+				String voteUrl = "http://news.ycombinator.com/vote?for=" + args[1]
+							   + "&dir=" + args[0] + "&whence=item?id=" + postId;
 				grequest.setURI(new URI(voteUrl));
 				String content = httpClient.execute(grequest, mResponseHandler, ctx);
 				if(content.equals("Can't make that vote.")) {

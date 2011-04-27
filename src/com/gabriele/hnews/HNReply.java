@@ -208,9 +208,7 @@ public class HNReply extends Activity {
 				@Override
 				public void onClick(View v) {
 					EditText etText = (EditText) dialog.findViewById(R.id.text);
-					
 					String text = etText.getText().toString();
-					
 					new HNSubmit().execute(replyId, postId, text);
 					dialog.dismiss();
 				}

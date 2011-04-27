@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,13 +30,16 @@ import org.jsoup.nodes.Document;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
@@ -69,7 +73,8 @@ public class HNews extends Activity  {
 	private ActionBar actionBar;
     private HNewsAdapter adapter;
     private SharedPreferences prefs;
-
+    private ArrayList<HNewsItem> data;
+    
     private String API_HOME = "http://api.ihackernews.com/page";
 	private String API_NEW = "http://api.ihackernews.com/new";
 	private String API_HCKR = "http://hckrnews.com/data/latest.js";
@@ -78,11 +83,11 @@ public class HNews extends Activity  {
 	private String location;
 
     private boolean loading = true;
+	private boolean online = false;
 	
     static final int DIALOG_ADD_ENTRY = 0;
     static final int DIALOG_CHOOSE = 1;
 
-    
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -92,8 +97,8 @@ public class HNews extends Activity  {
 
         HNApp = (HNApplication)getApplicationContext();
         	
-        prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        
+        prefs = getSharedPreferences("cache", Context.MODE_PRIVATE);
+               
         Intent intent = getIntent();
         if(Intent.ACTION_VIEW.equals(intent.getAction())) {
         	location = intent.getData().getLastPathSegment();
@@ -113,18 +118,19 @@ public class HNews extends Activity  {
         actionBar.addAction(mUpdateAction);
         actionBar.addAction(mLoadNewAction);
         actionBar.addAction(mAddAction);
-		adapter = new HNewsAdapter(getApplicationContext(), R.layout.newsitem, R.id.title, new ArrayList<HNewsItem>());
+        
+        //adapter = new HNewsAdapter(getApplicationContext(), R.layout.newsitem, R.id.title, data);
 		
         lv = (ListView)findViewById(R.id.news);
         registerForContextMenu(lv);
-        
-        lv.setAdapter(adapter);
+        loadFromCache();
+//        lv.setAdapter(adapter);
 
         lv.setOnScrollListener(new OnScrollListener() {
 
 			@Override
 			public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-				if (!(location == "hckr") && !loading && (firstVisibleItem + visibleItemCount) >= (totalItemCount - 15)) {
+				if (online && !(location == "hckr") && !loading && (firstVisibleItem + visibleItemCount) >= (totalItemCount - 15)) {
 					new getJson(true).execute(API_NEXT);//, true);
 					loading = true;
 				}
@@ -144,6 +150,8 @@ public class HNews extends Activity  {
 				Intent intent = new Intent(getApplicationContext(), HNPost.class);
 				intent.putExtra("postId", postId);
 				intent.putExtra("type", location);
+				HNewsItem item = adapter.getItem(arg2);
+				HNApp.setPost(item.getPostId(), item);
 				startActivity(intent);
 			}
         });
@@ -159,6 +167,30 @@ public class HNews extends Activity  {
         	showDialog(DIALOG_ADD_ENTRY, bundle);
         }
         
+    }
+    
+    private void saveInCache() {
+    	Editor editor = getSharedPreferences("cache", Context.MODE_PRIVATE).edit();
+   	 	try {
+			editor.putString(location, ObjectSerializer.serialize(data));
+			editor.commit();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    }
+    
+    private void loadFromCache() {
+		data = new ArrayList<HNewsItem>();
+		String news = prefs.getString(location, null);
+	    if(news != null) {
+	    	try {
+	    		data = (ArrayList<HNewsItem>) ObjectSerializer.deserialize(news);
+	    	} catch (Exception e) {
+				e.printStackTrace();
+			}
+	    }
+	    adapter = new HNewsAdapter(getApplicationContext(), R.layout.newsitem, R.id.title, data);
+	    lv.setAdapter(adapter);
     }
     
     @Override
@@ -314,8 +346,9 @@ public class HNews extends Activity  {
 	
     private void parseJson(String raw, boolean appendData) {
     	try {
-    		if(!appendData)
+    		if(!appendData) {
     			adapter.clear();
+    		}
 			JSONObject json = new JSONObject(raw);
 			JSONArray news = json.getJSONArray("items");
 			
@@ -342,11 +375,10 @@ public class HNews extends Activity  {
 				item.setPostId(singleNews.getString("id"));
 				item.setDomain(domain);
 				
-				HNApp.setPost(singleNews.getString("id"), item);
+				//HNApp.setPost(singleNews.getString("id"), item);
 				adapter.add(item);
-
 			}
-
+			saveInCache();
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -354,8 +386,9 @@ public class HNews extends Activity  {
     
     private void parseHckrJson(String raw, boolean appendData) {
     	try {
-    		if(!appendData)
+    		if(!appendData) {
     			adapter.clear();
+    		}
     		raw = "{\"items\":" + raw.substring(15) + "}";
 
 			JSONObject json = new JSONObject(raw);
@@ -378,10 +411,10 @@ public class HNews extends Activity  {
 				} catch (JSONException e ){
 					item.setDomain("");
 				}
-				HNApp.setPost(singleNews.getString("id"), item);
+				//HNApp.setPost(singleNews.getString("id"), item);
 				adapter.add(item);
-
 			}
+			saveInCache();
 
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -484,12 +517,13 @@ public class HNews extends Activity  {
     	}
     	
     	protected void onPostExecute(Integer v) {
+    		actionBar.setTitle(capitalize(location));
     		if(v == 0) {
     			loading = false;
-   				actionBar.setTitle(capitalize(location));
-    			adapter.notifyDataSetChanged();
+   				adapter.notifyDataSetChanged();
     		} else {
-    			actionBar.setTitle("No Internet Connection");
+    			Toast.makeText(getApplicationContext(), "No Internet Connectivity", Toast.LENGTH_SHORT).show();
+				loadFromCache();
     		}
     	}
     };

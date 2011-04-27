@@ -1,5 +1,6 @@
 package com.gabriele.hnews;
 
+import java.io.Serializable;
 import java.util.List;
 
 import android.content.Context;
@@ -11,6 +12,10 @@ import android.widget.TextView;
 
 public class HNewsAdapter extends ArrayAdapter<HNewsItem> {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3232325033801427799L;
 	private Context mContext;
 	private int mResource;
 	

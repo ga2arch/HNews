@@ -387,11 +387,11 @@ public class HNPost extends Activity{
     	}
     	
     	protected void onPostExecute(Integer v) {
+			actionBar.setTitle("HackerNews");
     		if(v == 0) {
-    			actionBar.setTitle("HackerNews");
     			adapter.notifyDataSetChanged();
     		} else {
-    			actionBar.setTitle("No Internet Connection");
+    			Toast.makeText(getApplicationContext(), "No Internet Connectivity", Toast.LENGTH_SHORT).show();
     		}
     	}
     };

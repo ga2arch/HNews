@@ -83,8 +83,7 @@ public class HNews extends Activity  {
 	private String location;
 
     private boolean loading = true;
-	private boolean online = false;
-	
+
     static final int DIALOG_ADD_ENTRY = 0;
     static final int DIALOG_CHOOSE = 1;
 
@@ -130,7 +129,7 @@ public class HNews extends Activity  {
 
 			@Override
 			public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-				if (online && !(location == "hckr") && !loading && (firstVisibleItem + visibleItemCount) >= (totalItemCount - 15)) {
+				if (!location.equals("hckr") && !loading && (firstVisibleItem + visibleItemCount) >= (totalItemCount - 15)) {
 					new getJson(true).execute(API_NEXT);//, true);
 					loading = true;
 				}

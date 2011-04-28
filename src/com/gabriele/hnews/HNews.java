@@ -567,7 +567,7 @@ public class HNews extends Activity  {
 					publishProgress("Loggin in ...");
 					ctx = HNApp.login();
 					if(ctx == null) {
-						publishProgress("Login Error");
+						publishProgress("Login error");
 						return 1;
 					}
 				}

@@ -254,8 +254,12 @@ public class HNReply extends Activity {
 				HttpContext ctx = HNApp.getCookie();
 				
 				if(ctx == null) {
-					publishProgress("Login Error");
-					return 3;
+					publishProgress("Loggin in ...");
+					ctx = HNApp.login();
+					if(ctx == null) {
+						publishProgress("Login error");
+						return 3;
+					}
 				}				
 				
 				HttpGet grequest = new HttpGet();
@@ -307,8 +311,12 @@ public class HNReply extends Activity {
 				HttpContext ctx = HNApp.getCookie();
 				
 				if(ctx == null) {
-					publishProgress("Login Error");
-					return 1;
+					publishProgress("Loggin in ...");
+					ctx = HNApp.login();
+					if(ctx == null) {
+						publishProgress("Login error");
+						return 1;
+					}
 				}
 				
 				HttpGet grequest = new HttpGet();

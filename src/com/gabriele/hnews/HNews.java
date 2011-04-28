@@ -6,8 +6,8 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.http.HttpResponse;
@@ -35,11 +35,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
@@ -83,7 +81,9 @@ public class HNews extends Activity  {
 	private String location;
 
     private boolean loading = true;
-
+    private boolean online = true;
+    private boolean apiError = false;
+    
     static final int DIALOG_ADD_ENTRY = 0;
     static final int DIALOG_CHOOSE = 1;
 
@@ -129,7 +129,7 @@ public class HNews extends Activity  {
 
 			@Override
 			public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-				if (!location.equals("hckr") && !loading && (firstVisibleItem + visibleItemCount) >= (totalItemCount - 15)) {
+				if (!apiError && online && !(API_END == API_HCKR) && !loading && (firstVisibleItem + visibleItemCount) >= (totalItemCount - 15)) {
 					new getJson(true).execute(API_NEXT);//, true);
 					loading = true;
 				}
@@ -179,6 +179,7 @@ public class HNews extends Activity  {
     }
     
     private void loadFromCache() {
+    	online = false;
 		data = new ArrayList<HNewsItem>();
 		String news = prefs.getString(location, null);
 	    if(news != null) {
@@ -306,7 +307,7 @@ public class HNews extends Activity  {
 			break;
 			
 		case DIALOG_CHOOSE:
-			final CharSequence[] items = {"News", "Newest", "Hckr"};
+			final CharSequence[] items = {"News", "Newest", "Hckr ( By Date )"};
 			
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setTitle("Pick a category");
@@ -314,24 +315,22 @@ public class HNews extends Activity  {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					location = ((String) items[which]).toLowerCase();
-					System.out.println("qui2" + location);
-					if(items[which] == "News") {
+					switch(which) {
+					case 0:
 						API_END = API_HOME;
-					} else if(items[which] == "Newest") {
+						break;
+					case 1:
 						API_END = API_NEW;
-					} else if(items[which] == "Hckr") {
+						break;
+					case 2:
 						API_END = API_HCKR;
+						break;
 					}
+					new getJson(false).execute(API_END);
 				}
 			});
 			
 			dialog = builder.create();
-			dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-				@Override
-				public void onDismiss(DialogInterface dialog) {
-		    		new getJson(false).execute(API_END);
-				}
-			});
 			break;
 		default:
 			dialog = null;
@@ -343,82 +342,21 @@ public class HNews extends Activity  {
 		return s.subSequence(0, 1).toString().toUpperCase() + s.substring(1);
 	}
 	
-    private void parseJson(String raw, boolean appendData) {
-    	try {
-    		if(!appendData) {
-    			adapter.clear();
-    		}
-			JSONObject json = new JSONObject(raw);
-			JSONArray news = json.getJSONArray("items");
-			
-			API_NEXT = API_END + "/" + json.getString("nextId");
-				
-			for(int i=0; i<news.length(); i++) {
-				HNewsItem item = new HNewsItem();
-				
-				JSONObject singleNews = news.getJSONObject(i);
-				String domain;
-
-				try {
-					domain = new URL(singleNews.getString("url")).getHost();
-				} catch (MalformedURLException e) {
-					domain = "news.ycombinator.com";
-				}
-				
-				item.setTitle(singleNews.getString("title"));
-				item.setAuthor(singleNews.getString("postedBy"));
-				item.setComments(singleNews.getString("commentCount"));
-				item.setUrl(singleNews.getString("url"));
-				item.setPoints(singleNews.getString("points"));
-				item.setTime(singleNews.getString("postedAgo"));
-				item.setPostId(singleNews.getString("id"));
-				item.setDomain(domain);
-				
-				//HNApp.setPost(singleNews.getString("id"), item);
-				adapter.add(item);
+     private String parseTime(long time) {
+    	long seconds = time/60;
+    	long hours;
+    	long days;
+		if(seconds >= 60) {
+    		hours = seconds / 60;
+			if(hours >= 60) {
+				days = hours / 60;
+				return days + " days ago";
 			}
-			saveInCache();
-		} catch (JSONException e) {
-			e.printStackTrace();
+			return hours + " hours ago";
 		}
-    }
-    
-    private void parseHckrJson(String raw, boolean appendData) {
-    	try {
-    		if(!appendData) {
-    			adapter.clear();
-    		}
-    		raw = "{\"items\":" + raw.substring(15) + "}";
-
-			JSONObject json = new JSONObject(raw);
-			JSONArray news = json.getJSONArray("items");
-			
-			for(int i=0; i<news.length(); i++) {
-				HNewsItem item = new HNewsItem();
-				
-				JSONObject singleNews = news.getJSONObject(i);
-
-				item.setTitle(singleNews.getString("link_text"));
-				item.setAuthor(singleNews.getString("submitter"));
-				item.setComments(singleNews.getString("comments"));
-				item.setUrl(singleNews.getString("link"));
-				item.setPoints(singleNews.getString("points"));
-				item.setTime(singleNews.getString("date"));
-				item.setPostId(singleNews.getString("id"));
-				try {
-					item.setDomain(singleNews.getString("source"));
-				} catch (JSONException e ){
-					item.setDomain("");
-				}
-				//HNApp.setPost(singleNews.getString("id"), item);
-				adapter.add(item);
-			}
-			saveInCache();
-
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-    }
+		return seconds + " seconds ago";
+    		
+    }	
     
     final MyAction mUpdateAction = new MyAction() {
     	@Override
@@ -480,10 +418,96 @@ public class HNews extends Activity  {
     	}
     };
     
+    private void parseJson(String raw, boolean appendData) {
+    	try {
+    		if(!appendData) {
+    			adapter.clear();
+    		}
+			JSONObject json = new JSONObject(raw);
+			JSONArray news = json.getJSONArray("items");
+			API_NEXT = API_END + "/" + json.getString("nextId");
+			apiError = false;
+			
+			for(int i=0; i<news.length(); i++) {
+				HNewsItem item = new HNewsItem();
+				
+				JSONObject singleNews = news.getJSONObject(i);
+				String domain;
+
+				try {
+					domain = new URL(singleNews.getString("url")).getHost();
+				} catch (MalformedURLException e) {
+					domain = "news.ycombinator.com";
+				}
+				
+				item.setTitle(singleNews.getString("title"));
+				item.setAuthor(singleNews.getString("postedBy"));
+				item.setComments(singleNews.getString("commentCount"));
+				item.setUrl(singleNews.getString("url"));
+				item.setPoints(singleNews.getString("points"));
+				item.setTime(singleNews.getString("postedAgo"));
+				item.setPostId(singleNews.getString("id"));
+				item.setDomain(domain);
+				
+				//HNApp.setPost(singleNews.getString("id"), item);
+				adapter.add(item);
+			}
+			saveInCache();
+		} catch (JSONException e) {
+			apiError = true;
+			Toast.makeText(getApplicationContext(), "Api error", Toast.LENGTH_SHORT).show();
+			e.printStackTrace();
+		}
+    }
+    
+    private void parseHckrJson(String raw, boolean appendData) {
+    	try {
+    		if(!appendData) {
+    			adapter.clear();
+    		}
+    		raw = "{\"items\":" + raw.substring(15) + "}";
+
+			JSONObject json = new JSONObject(raw);
+			JSONArray news = json.getJSONArray("items");
+			
+			for(int i=0; i<news.length(); i++) {
+				HNewsItem item = new HNewsItem();
+				
+				JSONObject singleNews = news.getJSONObject(i);
+
+				item.setTitle(singleNews.getString("link_text"));
+				item.setAuthor(singleNews.getString("submitter"));
+				item.setComments(singleNews.getString("comments"));
+				item.setUrl(singleNews.getString("link"));
+				item.setPoints(singleNews.getString("points"));
+				
+				long epoch = System.currentTimeMillis()/1000;
+				long timeStamp = Long.parseLong(singleNews.getString("date"));
+				long date = epoch - timeStamp;
+				
+				item.setTime(parseTime(date));
+				item.setPostId(singleNews.getString("id"));
+				try {
+					item.setDomain(singleNews.getString("source"));
+				} catch (JSONException e ){
+					item.setDomain("");
+				}
+				//HNApp.setPost(singleNews.getString("id"), item);
+				adapter.add(item);
+			}
+			saveInCache();
+
+		} catch (JSONException e) {
+			Toast.makeText(getApplicationContext(), "Api error", Toast.LENGTH_SHORT).show();
+			e.printStackTrace();
+		}
+    }
+    
+
     
     private class getJson extends AsyncTask<String, String, Integer> {
     	
-    	boolean appendData;
+    	private boolean appendData;
     	
     	public getJson(boolean appendData) {
     		this.appendData = appendData;
@@ -500,25 +524,29 @@ public class HNews extends Activity  {
 				URI targetUri = new URI((String)args[0]);
 				request.setURI(targetUri);
 				String result = httpClient.execute(request, mResponseHandler);
+				online = true;
 				publishProgress(result);
 				return 0;
 			} catch(Exception e) {
+				online = false;
 				e.printStackTrace();
 				return 1;
 			}
 		}
     	
     	protected void onProgressUpdate(String... result) {
-    		if(location.equals("hckr"))
+    		if(API_END == API_HCKR) {
     			parseHckrJson(result[0], appendData);
-    		else
+    			return;
+    		} else {
     			parseJson(result[0], appendData);
+    			return;
+    	 	}
     	}
-    	
     	protected void onPostExecute(Integer v) {
     		actionBar.setTitle(capitalize(location));
+			loading = false;
     		if(v == 0) {
-    			loading = false;
    				adapter.notifyDataSetChanged();
     		} else {
     			Toast.makeText(getApplicationContext(), "No Internet Connectivity", Toast.LENGTH_SHORT).show();
@@ -536,8 +564,12 @@ public class HNews extends Activity  {
 				HttpContext ctx = HNApp.getCookie();
 				
 				if(ctx == null) {
-					publishProgress("Login Error");
-					return 1;
+					publishProgress("Loggin in ...");
+					ctx = HNApp.login();
+					if(ctx == null) {
+						publishProgress("Login Error");
+						return 1;
+					}
 				}
 				
 				HttpGet grequest = new HttpGet();
@@ -583,12 +615,12 @@ public class HNews extends Activity  {
 			switch(arg) {
 			case 0:
 				Toast.makeText(getApplicationContext(), "Submitted", Toast.LENGTH_SHORT).show();
-				return;
+				break;
 			case 2:
 				Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
-				return;
+				break;
 			}
-			
+			return;
 		}
 		
     }

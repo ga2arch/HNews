@@ -99,8 +99,10 @@ public class HNApplication extends Application {
     };
     
     public HttpContext getCookie() {
-    	if(ctx != null)
-    		return ctx;
+    	return ctx;
+    }
+    
+    public HttpContext login() {
     	try {
     		//Log.i("LOGIN", "YES");
     		

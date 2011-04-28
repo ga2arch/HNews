@@ -290,6 +290,7 @@ public class HNPost extends Activity{
 			}
 
 		} catch (JSONException e) {
+			Toast.makeText(getApplicationContext(), "Api error", Toast.LENGTH_SHORT).show();
 			e.printStackTrace();
 		}
     }

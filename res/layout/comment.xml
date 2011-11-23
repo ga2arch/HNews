@@ -1,0 +1,67 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+				android:layout_height="wrap_content"
+				android:layout_width="match_parent"
+				android:padding="7sp">
+	
+	<LinearLayout android:orientation="vertical"
+	    		  android:layout_width="match_parent"
+	    		  android:layout_height="match_parent">
+	    		  
+		<RelativeLayout android:paddingBottom="2sp"
+					  android:layout_width="match_parent"
+					  android:layout_height="wrap_content">
+					  
+			<TextView android:id="@+id/author"
+					  android:layout_width="match_parent"
+					  android:layout_height="wrap_content"
+					  android:textColor="#0C0C0C"
+					  android:textSize="16sp"
+					  android:textStyle="bold">
+			</TextView>
+			
+			<TextView android:id="@+id/time"
+					  android:layout_width="wrap_content"
+					  android:layout_height="wrap_content"
+					  android:layout_alignRight="@+id/author"
+					  android:layout_alignParentRight="true"
+					  android:layout_gravity="right"
+					  android:textColor="#8F8F8F">
+			</TextView>
+					  
+		</RelativeLayout>
+		
+		<LinearLayout android:orientation="horizontal"
+					  android:layout_width="wrap_content"
+					  android:layout_height="wrap_content">
+					  
+		    <TextView android:id="@+id/content"
+					  android:layout_width="wrap_content"
+					  android:layout_height="wrap_content"
+					  android:textColor="#0C0C0C">
+			</TextView>
+					  
+		</LinearLayout>
+		
+		<RelativeLayout android:paddingTop="2sp"
+					  android:layout_width="match_parent"
+					  android:layout_height="wrap_content">
+					  
+			<TextView android:id="@+id/points"
+					  android:layout_width="wrap_content"
+					  android:layout_height="wrap_content"
+					  android:textColor="#8F8F8F"
+					  android:visibility="gone">
+			</TextView>
+			
+			<TextView android:id="@+id/numReply"
+					  android:layout_width="wrap_content"
+					  android:layout_height="wrap_content"
+					  android:layout_alignParentRight="true"
+					  android:gravity="right"
+					  android:textColor="#8F8F8F">
+			</TextView>
+						
+		</RelativeLayout>
+		
+	</LinearLayout>
+</RelativeLayout>

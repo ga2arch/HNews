@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/menu_reload"
+    	  android:icon="@drawable/ic_title_refresh_default"
+          android:title=" "
+          android:showAsAction="ifRoom" />
+</menu>

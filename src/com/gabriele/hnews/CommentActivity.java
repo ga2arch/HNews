@@ -1,13 +1,12 @@
 package com.gabriele.hnews;
 
-import java.util.ArrayList;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.view.View;
+import android.widget.TextView;
 
-import com.gabriele.hnews.fragments.CommentFragment;
 import com.gabriele.hnews.fragments.CommentListFragment;
 import com.gabriele.hnews.response.Comment;
 
@@ -22,25 +21,29 @@ public class CommentActivity extends FragmentActivity {
 		Comment comment = (Comment) intent.getSerializableExtra("comment");
 		
 		FragmentManager fm = getSupportFragmentManager();
-		CommentFragment cf = (CommentFragment) fm.findFragmentById(R.id.comment);
-		cf.fillView(comment);
 		
 		CommentListFragment clf = (CommentListFragment) fm.findFragmentById(R.id.children);
+		clf.getListView().addHeaderView(fillView(comment));
 		clf.fillListView(comment.children);
+	
 	}
-
-	@SuppressWarnings("unchecked")
-	private Comment buildComment(Bundle bundle) {
-		Comment comment = new Comment();
+	
+	private View fillView(Comment comment) {
+		View v = getLayoutInflater().inflate(R.layout.comment, null, false);
 		
-		comment.postedBy = bundle.getString("postedBy");
-		comment.postedAgo = bundle.getString("postedAgo");
-		comment.points = bundle.getInt("points");
-		comment.id = bundle.getInt("id");
-		comment.comment = bundle.getString("comment");
-		comment.children = (ArrayList<Comment>) bundle.getSerializable("children");
+		TextView tvAuthor = (TextView)v.findViewById(R.id.author);
+		TextView tvTime = (TextView)v.findViewById(R.id.time);
+		TextView tvPoints = (TextView)v.findViewById(R.id.points);
+		TextView tvNumReply = (TextView)v.findViewById(R.id.numReply);
+		TextView tvContent = (TextView)v.findViewById(R.id.content);
 		
-		return comment;
+		tvAuthor.setText(comment.postedBy);
+		tvTime.setText(comment.postedAgo);
+		tvPoints.setText(comment.points + " points");
+		tvContent.setText(comment.comment);
+		tvNumReply.setText(comment.children.size() + " replies");
+		
+		return v;
 	}
 	
 }

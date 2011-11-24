@@ -96,10 +96,4 @@ public class CommentListFragment extends ListFragment {
 		intent.putExtra("comment", comment);
 		getActivity().startActivity(intent);
 	}
-	
-	/*private Bundle buildBundle(Comment comment) {
-		Bundle bundle = new Bundle();
-		
-	}*/
-	
 }

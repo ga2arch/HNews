@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.text.util.Linkify;
 import android.view.View;
 import android.widget.TextView;
 
@@ -23,7 +24,7 @@ public class CommentActivity extends FragmentActivity {
 		FragmentManager fm = getSupportFragmentManager();
 		
 		CommentListFragment clf = (CommentListFragment) fm.findFragmentById(R.id.children);
-		clf.getListView().addHeaderView(fillView(comment));
+		clf.getListView().addHeaderView(fillView(comment), null, true);
 		clf.fillListView(comment.children);
 	
 	}
@@ -40,8 +41,10 @@ public class CommentActivity extends FragmentActivity {
 		tvAuthor.setText(comment.postedBy);
 		tvTime.setText(comment.postedAgo);
 		tvPoints.setText(comment.points + " points");
-		tvContent.setText(comment.comment);
-		tvNumReply.setText(comment.children.size() + " replies");
+		tvContent.setText(comment.getCleanComment());
+		tvNumReply.setVisibility(View.GONE);
+		
+		Linkify.addLinks(tvContent, Linkify.ALL);
 		
 		return v;
 	}

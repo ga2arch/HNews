@@ -45,7 +45,7 @@ public class CommentAdapter extends ArrayAdapter<Comment> {
 		viewHolder.tvAuthor.setText(comment.postedBy);
 		viewHolder.tvTime.setText(comment.postedAgo);
 		viewHolder.tvPoints.setText(comment.points + " points");
-		viewHolder.tvContent.setText(comment.comment);
+		viewHolder.tvContent.setText(comment.getCleanComment());
 		viewHolder.tvNumReply.setText(comment.children.size() + " replies");
 		
 		return convertView;

@@ -51,7 +51,7 @@ public class ItemListFragment extends ListFragment {
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		//loadData();
+		loadData();
     }
 	
 	

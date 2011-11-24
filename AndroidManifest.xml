@@ -18,6 +18,7 @@
         </activity>
 		
 		<activity android:name=".PageItemActivity"></activity>
+		<activity android:name=".CommentActivity"></activity>
 		<service android:name=".request.RequestService"></service>
     </application>
 </manifest>

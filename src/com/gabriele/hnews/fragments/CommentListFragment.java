@@ -3,6 +3,7 @@ package com.gabriele.hnews.fragments;
 import java.util.ArrayList;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.ResultReceiver;
 import android.support.v4.app.ListFragment;
@@ -12,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.gabriele.hnews.CommentActivity;
 import com.gabriele.hnews.R;
 import com.gabriele.hnews.adapters.CommentAdapter;
 import com.gabriele.hnews.request.IHackernewsApi;
@@ -41,7 +43,7 @@ public class CommentListFragment extends ListFragment {
 		fillListView(resp.comments);
 	}
 	
-	private void fillListView(ArrayList<Comment> comments) {
+	public void fillListView(ArrayList<Comment> comments) {
 		Context context = getActivity().getApplicationContext();
 
 		final CommentAdapter adapter = new CommentAdapter(context, R.layout.comment, 
@@ -90,7 +92,14 @@ public class CommentListFragment extends ListFragment {
 	@Override
 	public void onListItemClick (ListView lv, View v, int position, long id) {
 		Comment comment = (Comment) lv.getAdapter().getItem(position);
-		
+		Intent intent = new Intent(getActivity().getApplicationContext(), CommentActivity.class);
+		intent.putExtra("comment", comment);
+		getActivity().startActivity(intent);
 	}
-
+	
+	/*private Bundle buildBundle(Comment comment) {
+		Bundle bundle = new Bundle();
+		
+	}*/
+	
 }

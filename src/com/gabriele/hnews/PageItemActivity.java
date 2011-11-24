@@ -19,7 +19,7 @@ public class PageItemActivity extends FragmentActivity {
 		setContentView(R.layout.page_item);
 		
 		Intent intent = getIntent();
-		PageItem item = buildPageItem(intent.getExtras());
+		PageItem item = (PageItem) intent.getSerializableExtra("pageitem");
 		
 		FragmentManager fm = getSupportFragmentManager();
 		ItemInfoFragment itf = (ItemInfoFragment) fm.findFragmentById(R.id.page_item);
@@ -28,19 +28,4 @@ public class PageItemActivity extends FragmentActivity {
 		CommentListFragment clf = (CommentListFragment) fm.findFragmentById(R.id.comment_list);
 		clf.loadData(IHackernewsApi.API_POST_INFO + item.id);
 	}
-
-	private PageItem buildPageItem(Bundle bundle) {
-		PageItem item = new PageItem();
-		
-		item.title = bundle.getString("title");
-		item.url = bundle.getString("url");
-		item.postedBy = bundle.getString("postedBy");
-		item.postedAgo = bundle.getString("postedAgo");
-		item.points = bundle.getInt("points");
-		item.id = bundle.getInt("id");
-		item.commentCount = bundle.getInt("commentCount");
-		
-		return item;
-	}
-	
 }

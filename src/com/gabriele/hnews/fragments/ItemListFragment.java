@@ -106,25 +106,9 @@ public class ItemListFragment extends ListFragment {
 	@Override
 	public void onListItemClick (ListView lv, View v, int position, long id) {
 		PageItem item = (PageItem) lv.getAdapter().getItem(position);
-		Bundle bundle = buildBundle(item);
 		Context context = getActivity().getApplicationContext();
 		Intent intent = new Intent(context, PageItemActivity.class);
-		intent.putExtras(bundle);
+		intent.putExtra("pageitem", item);
 		getActivity().startActivity(intent);
 	}
-	
-    private Bundle buildBundle(PageItem item) {
-    	Bundle bundle = new Bundle();
-    	
-    	bundle.putString("title", item.title);
-    	bundle.putString("url", item.url);
-    	bundle.putString("postedBy", item.postedBy);
-    	bundle.putString("postedAgo", item.postedAgo);
-    	bundle.putInt("id", item.id);
-    	bundle.putInt("points", item.points);
-    	bundle.putInt("commentCount", item.commentCount);
-    	
-    	return bundle;
-    }
-	
 }
